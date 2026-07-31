@@ -3,6 +3,8 @@
 **훅: "내 지역구 의원, 요즘 뭐 하고 있을까?"** — 지역구 국회의원의
 **인적사항 · 발의 · 표결 · 출석 · 재산등록**을 판단 없이 사실 그대로 보여주는 개인 프로젝트.
 (내부 코드명: politics-transparency)
+
+🔗 **라이브: https://my-mp-seven.vercel.app** · 저장소: https://github.com/TAEstationSUNG/my-mp
 ([Notion PRD](https://app.notion.com/p/3ad2a3b2231381ed8efdf069d0216c6c))
 
 ## 현재 단계: STEP 1 — API 검증
@@ -83,7 +85,7 @@ npm run ingest:tags          # 이슈 태그 규칙 적용
 - [ ] 공유용 OG 이미지 자동생성 (`next/og`, 팩트 카드) — PRD 10-5
 - [ ] 이슈 카드 갤러리 (읽기 전용, 자동 큐레이션) — PRD 10-5
 - [ ] GitHub Actions 자동 수집 스케줄링 — PRD 7
-- [ ] Vercel 배포
+- [x] Vercel 배포 → https://my-mp-seven.vercel.app
 
 ### 🟡 Phase 2 — 어려운 데이터 파이프라인 (새 소스 필요)
 - [ ] 재산등록 관보 PDF → 파싱/OCR → 구조화 (소규모 검증부터) — PRD 4·6

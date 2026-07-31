@@ -4,8 +4,10 @@ import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
+// 국회 의안정보시스템 원문(제안이유·주요내용·표결기록) 링크
+const billUrl = (id) => `https://likms.assembly.go.kr/bill/billDetail.do?billId=${id}`;
+
 async function getData(monaCd) {
-  // 의원 인적사항
   const { data: member } = await supabase
     .from("members")
     .select("*")
@@ -13,7 +15,6 @@ async function getData(monaCd) {
     .maybeSingle();
   if (!member) return null;
 
-  // 대표발의 법안 (최신순 일부 + 전체 건수)
   const { data: bills, count: billCount } = await supabase
     .from("bills")
     .select("bill_id, bill_name, propose_dt, proc_result", { count: "exact" })
@@ -21,17 +22,15 @@ async function getData(monaCd) {
     .order("propose_dt", { ascending: false })
     .limit(10);
 
-  // 본회의 표결 참여율(출석률 근사) — 뷰에서
   const { data: part } = await supabase
     .from("member_vote_participation")
     .select("total_votes, attended, absent, participation_rate")
     .eq("mona_cd", monaCd)
     .maybeSingle();
 
-  // 최근 표결 기록 일부
   const { data: votes } = await supabase
     .from("votes")
-    .select("bill_name, result_vote_mod, vote_date")
+    .select("bill_id, bill_name, result_vote_mod, vote_date")
     .eq("mona_cd", monaCd)
     .order("vote_date", { ascending: false })
     .limit(8);
@@ -84,23 +83,26 @@ export default async function MemberPage({ params }) {
         </div>
       </div>
 
-      {/* 인적사항 */}
-      <h2>인적사항</h2>
-      <div className="card">
-        <dl className="kv">
-          {m.hj_nm && (<><dt>한자</dt><dd>{m.hj_nm}</dd></>)}
-          {m.bth_date && (<><dt>생년월일</dt><dd>{m.bth_date}</dd></>)}
-          {m.cmit_nm && (<><dt>소속 위원회</dt><dd>{m.cmit_nm}</dd></>)}
-          {m.units && (<><dt>대수</dt><dd>{m.units}</dd></>)}
-          {m.assem_addr && (<><dt>사무실</dt><dd>{m.assem_addr}</dd></>)}
-          {m.tel_no && (<><dt>전화</dt><dd>{m.tel_no}</dd></>)}
-        </dl>
-        {m.mem_title && (
-          <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 12, whiteSpace: "pre-line" }}>
-            {decodeEntities(m.mem_title)}
-          </p>
-        )}
-      </div>
+      {/* 인적사항 — 통째로 접기/펼치기 */}
+      <details className="section" open>
+        <summary>인적사항</summary>
+        <div className="card">
+          <dl className="kv">
+            {m.hj_nm && (<><dt>한자</dt><dd>{m.hj_nm}</dd></>)}
+            {m.bth_date && (<><dt>생년월일</dt><dd>{m.bth_date}</dd></>)}
+            {m.cmit_nm && (<><dt>소속 위원회</dt><dd>{m.cmit_nm}</dd></>)}
+            {m.units && (<><dt>대수</dt><dd>{m.units}</dd></>)}
+            {m.assem_addr && (<><dt>사무실</dt><dd>{m.assem_addr}</dd></>)}
+            {m.tel_no && (<><dt>전화</dt><dd>{m.tel_no}</dd></>)}
+          </dl>
+          {m.mem_title && (
+            <details className="collapse">
+              <summary>학력 · 경력 펼치기</summary>
+              <p className="career">{decodeEntities(m.mem_title)}</p>
+            </details>
+          )}
+        </div>
+      </details>
 
       {/* 현재 활동 */}
       <h2>현재 활동</h2>
@@ -131,36 +133,60 @@ export default async function MemberPage({ params }) {
 
       {/* 대표발의 법안 */}
       <h2>대표발의 법안 {billCount > 10 ? `(최근 10건 / 총 ${billCount}건)` : ""}</h2>
+      <p className="caption">
+        <b>대표발의</b> = 그 법안을 대표로 제안한 의원. 항목을 누르면 국회 원문에서
+        <b> 제안 이유·주요 내용</b>을 볼 수 있어요.
+      </p>
       <div className="card">
         {bills.length === 0 && <p className="empty">대표발의한 법안이 없습니다.</p>}
         {bills.map((b) => (
-          <div key={b.bill_id} className="bill-item">
-            <div>{b.bill_name}</div>
+          <a
+            key={b.bill_id}
+            href={billUrl(b.bill_id)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bill-item link"
+          >
+            <div className="row">
+              <span>{b.bill_name}</span>
+              <span className="ext">원문 ↗</span>
+            </div>
             <div className="meta">
               {b.propose_dt} {b.proc_result ? `· ${b.proc_result}` : "· 처리 진행중"}
             </div>
-          </div>
+          </a>
         ))}
       </div>
 
       {/* 최근 표결 */}
       <h2>최근 본회의 표결</h2>
+      <p className="caption">
+        <b>본회의</b> = 국회의원 전원이 모여 법안을 최종 표결하는 회의. 아래 찬성·반대는
+        <b> 이 의원이 실제로 던진 표</b>(국회 공식 기록)예요. 누르면 원문에서 확인돼요.
+      </p>
       <div className="card">
         {votes.length === 0 && (
           <p className="empty">표결 기록이 아직 적재되지 않았습니다.</p>
         )}
         {votes.map((v, i) => (
-          <div key={i} className="bill-item">
+          <a
+            key={i}
+            href={billUrl(v.bill_id)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bill-item link"
+          >
             <div className="row">
               <span>{v.bill_name}</span>
               <span className={`vote-badge ${voteClass(v.result_vote_mod)}`}>
                 {v.result_vote_mod}
               </span>
             </div>
-            {v.vote_date && (
-              <div className="meta">{new Date(v.vote_date).toLocaleDateString("ko-KR")}</div>
-            )}
-          </div>
+            <div className="meta">
+              {v.vote_date ? `${new Date(v.vote_date).toLocaleDateString("ko-KR")} · ` : ""}
+              원문에서 확인 ↗
+            </div>
+          </a>
         ))}
       </div>
 
@@ -172,8 +198,8 @@ export default async function MemberPage({ params }) {
       </div>
 
       <p className="principle">
-        모든 정보는 열린국회정보 등 공개 데이터의 원문입니다. 점수·순위·평가를 붙이지 않으며,
-        판단은 이용자의 몫입니다.
+        모든 정보는 열린국회정보 등 공개 데이터의 원문입니다.
+        각 항목은 국회 의안정보시스템 원문으로 연결됩니다.
       </p>
     </main>
   );

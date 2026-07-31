@@ -12,7 +12,6 @@ export default function RootLayout({ children }) {
         <header className="site-header">
           <div className="inner">
             <a href="/" className="logo">🗳️ 내 의원 뭐하나</a>
-            <span className="tag">사실만 · 판단은 당신 몫</span>
           </div>
         </header>
         {children}
