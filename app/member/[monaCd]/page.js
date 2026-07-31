@@ -134,8 +134,8 @@ export default async function MemberPage({ params }) {
       {/* 대표발의 법안 */}
       <h2>대표발의 법안 {billCount > 10 ? `(최근 10건 / 총 ${billCount}건)` : ""}</h2>
       <p className="caption">
-        <b>대표발의</b> = 그 법안을 대표로 제안한 의원. 항목을 누르면 국회 원문에서
-        <b> 제안 이유·주요 내용</b>을 볼 수 있어요.
+        (*<b>대표발의</b>란, 그 법안을 대표로 제안한 의원이에요.)
+        항목을 누르면 국회 원문에서 제안 이유·주요 내용을 볼 수 있어요.
       </p>
       <div className="card">
         {bills.length === 0 && <p className="empty">대표발의한 법안이 없습니다.</p>}
@@ -161,8 +161,8 @@ export default async function MemberPage({ params }) {
       {/* 최근 표결 */}
       <h2>최근 본회의 표결</h2>
       <p className="caption">
-        <b>본회의</b> = 국회의원 전원이 모여 법안을 최종 표결하는 회의. 아래 찬성·반대는
-        <b> 이 의원이 실제로 던진 표</b>(국회 공식 기록)예요. 누르면 원문에서 확인돼요.
+        (*<b>본회의</b>란, 국회의원 전원이 모여 법안을 최종적으로 찬반 표결하는 회의예요.)
+        아래 찬성·반대는 이 의원이 실제로 던진 표(국회 공식 기록)이고, 누르면 원문에서 확인돼요.
       </p>
       <div className="card">
         {votes.length === 0 && (

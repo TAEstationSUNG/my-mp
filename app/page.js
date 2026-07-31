@@ -95,8 +95,8 @@ export default async function Home({ searchParams }) {
       })}
 
       <p className="principle">
-        이 서비스는 점수·순위를 매기지 않습니다. 열린국회정보 등 공개된 사실만 그대로 보여주며,
-        평가와 판단은 이용자의 몫입니다.
+        점수·순위 없이, 국회가 공개한 자료의 원문을 그대로 보여드립니다.
+        (출처: 열린국회정보 · 국회 의안정보시스템)
       </p>
     </main>
   );
