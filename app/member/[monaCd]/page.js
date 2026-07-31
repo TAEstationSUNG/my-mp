@@ -135,26 +135,31 @@ export default async function MemberPage({ params }) {
       <h2>대표발의 법안 {billCount > 10 ? `(최근 10건 / 총 ${billCount}건)` : ""}</h2>
       <p className="caption">
         (*<b>대표발의</b>란, 그 법안을 대표로 제안한 의원이에요.)
-        항목을 누르면 국회 원문에서 제안 이유·주요 내용을 볼 수 있어요.
+        ‘원문 보기’를 누르면 국회 원문에서 제안 이유·주요 내용을 볼 수 있어요.
+        쉬운 말 요약(AI)은 곧 추가될 예정이에요.
       </p>
       <div className="card">
         {bills.length === 0 && <p className="empty">대표발의한 법안이 없습니다.</p>}
         {bills.map((b) => (
-          <a
-            key={b.bill_id}
-            href={billUrl(b.bill_id)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bill-item link"
-          >
-            <div className="row">
-              <span>{b.bill_name}</span>
-              <span className="ext">원문 ↗</span>
-            </div>
+          <div key={b.bill_id} className="bill-item">
+            <div>{b.bill_name}</div>
             <div className="meta">
               {b.propose_dt} {b.proc_result ? `· ${b.proc_result}` : "· 처리 진행중"}
             </div>
-          </a>
+            <div className="bill-actions">
+              <a
+                href={billUrl(b.bill_id)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="act-link"
+              >
+                원문 보기 ↗
+              </a>
+              <span className="act-chip soon" title="곧 제공될 예정이에요">
+                🤖 AI 요약 (준비 중)
+              </span>
+            </div>
+          </div>
         ))}
       </div>
 
