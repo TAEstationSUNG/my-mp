@@ -1,0 +1,212 @@
+/* ===== 컬러풀·친근 테마 (라이트/다크 자동 전환) ===== */
+:root {
+  --bg: #f4f3fb;
+  --bg-grad-1: #eef0ff;
+  --bg-grad-2: #fdf0f6;
+  --card: #ffffff;
+  --text: #1b1b2b;
+  --muted: #6b7280;
+  --line: #ececf3;
+  --accent: #6d5ae6;
+  --accent-soft: #efeaff;
+  --green: #12a150;
+  --green-soft: #e5f6ec;
+  --red: #e5484d;
+  --red-soft: #fdeaea;
+  --gray-soft: #f1f1f6;
+  --shadow: 0 6px 20px rgba(31, 26, 74, 0.06);
+  --shadow-hover: 0 10px 28px rgba(31, 26, 74, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101018;
+    --bg-grad-1: #16162280;
+    --bg-grad-2: #1a121e80;
+    --card: #1b1c26;
+    --text: #ecedf5;
+    --muted: #9aa0ac;
+    --line: #2a2c38;
+    --accent: #8f7dff;
+    --accent-soft: #262247;
+    --green: #3ecf7a;
+    --green-soft: #17321f;
+    --red: #ff6b6f;
+    --red-soft: #3a1e20;
+    --gray-soft: #23242f;
+    --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    --shadow-hover: 0 10px 28px rgba(0, 0, 0, 0.5);
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 500px at 15% -10%, var(--bg-grad-1), transparent 60%),
+    radial-gradient(1000px 500px at 100% 0%, var(--bg-grad-2), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic",
+    "Apple SD Gothic Neo", sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+
+.container { max-width: 720px; margin: 0 auto; padding: 20px 16px 72px; }
+
+/* 헤더 */
+.site-header {
+  position: sticky; top: 0; z-index: 10;
+  backdrop-filter: saturate(160%) blur(12px);
+  background: color-mix(in srgb, var(--card) 82%, transparent);
+  border-bottom: 1px solid var(--line);
+}
+.site-header .inner {
+  max-width: 720px; margin: 0 auto; padding: 14px 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.site-header .logo { font-weight: 800; font-size: 18px; letter-spacing: -0.02em; }
+.site-header .tag {
+  font-size: 11px; color: var(--accent); font-weight: 600;
+  background: var(--accent-soft); padding: 3px 9px; border-radius: 999px;
+}
+
+/* 타이포 */
+h1 { font-size: 26px; margin: 10px 0 6px; letter-spacing: -0.03em; font-weight: 800; }
+h2 { font-size: 15px; margin: 30px 4px 12px; font-weight: 700; color: var(--muted);
+     text-transform: none; letter-spacing: 0; }
+.lead { color: var(--muted); margin: 0 0 22px; font-size: 15px; }
+
+/* 검색 */
+.search { display: flex; gap: 8px; margin: 18px 0 10px; }
+.search input {
+  flex: 1; padding: 14px 16px; border: 1.5px solid var(--line);
+  border-radius: 14px; font-size: 15px; background: var(--card); color: var(--text);
+  box-shadow: var(--shadow); outline: none; transition: border-color .15s;
+}
+.search input:focus { border-color: var(--accent); }
+.search button {
+  padding: 0 20px; border: 0; border-radius: 14px; font-weight: 700;
+  background: var(--accent); color: #fff; font-size: 15px; cursor: pointer;
+  box-shadow: var(--shadow); transition: transform .1s, filter .15s;
+}
+.search button:hover { filter: brightness(1.05); }
+.search button:active { transform: scale(0.97); }
+.hint { font-size: 13px; color: var(--muted); padding: 4px 2px; }
+
+/* 카드 */
+.card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 18px; padding: 18px; margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+
+/* 아바타 */
+.avatar {
+  flex: none; display: grid; place-items: center;
+  width: 46px; height: 46px; border-radius: 50%;
+  color: #fff; font-weight: 800; font-size: 18px;
+}
+.avatar.lg { width: 64px; height: 64px; font-size: 26px; }
+
+/* 의원 목록 행 */
+.member-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 18px; margin-bottom: 12px;
+  box-shadow: var(--shadow); transition: transform .12s, box-shadow .15s;
+}
+.member-row:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+.member-row .grow { flex: 1; min-width: 0; }
+.member-row .name { font-weight: 700; font-size: 17px; letter-spacing: -0.02em; }
+.member-row .sub { font-size: 13px; color: var(--muted); }
+.chevron { color: var(--muted); font-size: 22px; align-self: center; }
+
+/* 최근 활동 미리보기 (홈 목록의 훅) */
+.recent {
+  margin-top: 8px; font-size: 13px; color: var(--text);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.recent-tag {
+  display: inline-block; font-size: 11px; font-weight: 700; color: var(--accent);
+  background: var(--accent-soft); padding: 2px 8px; border-radius: 999px; margin-right: 6px;
+}
+.recent-more { color: var(--muted); }
+.muted-recent { color: var(--muted); }
+.member-row { align-items: flex-start; }
+.member-row .avatar { margin-top: 2px; }
+
+/* 칩 / 배지 */
+.chip {
+  display: inline-block; padding: 4px 11px; border-radius: 999px;
+  background: var(--gray-soft); font-size: 12px; color: var(--muted);
+  font-weight: 600; margin-right: 6px; margin-top: 4px;
+}
+.party-badge {
+  display: inline-block; padding: 4px 12px; border-radius: 999px;
+  color: #fff; font-size: 13px; font-weight: 700;
+}
+
+/* 프로필 헤더 */
+.profile-head { display: flex; align-items: center; gap: 16px; margin: 6px 0 4px; }
+.profile-head .meta { min-width: 0; }
+.profile-head h1 { margin: 0 0 6px; }
+
+/* 인적사항 */
+.kv { display: grid; grid-template-columns: 96px 1fr; gap: 8px 14px; font-size: 14px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+
+/* 스탯 타일 */
+.stat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat .box {
+  background: var(--gray-soft); border-radius: 14px; padding: 14px 12px; text-align: center;
+}
+.stat .box.accent { background: var(--accent-soft); }
+.stat .num { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.stat .num.small { font-size: 18px; }
+.stat .lbl { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+/* 법안/표결 리스트 */
+.bill-item { padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+.bill-item:last-child { border-bottom: 0; }
+.bill-item .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.bill-item .meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+/* 표결 결과 배지 */
+.vote-badge { flex: none; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+.vote-yes { color: var(--green); background: var(--green-soft); }
+.vote-no { color: var(--red); background: var(--red-soft); }
+.vote-etc { color: var(--muted); background: var(--gray-soft); }
+
+/* 안내/공지 */
+.notice {
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  color: var(--text); border-radius: 14px; padding: 14px 16px; font-size: 13.5px;
+}
+.notice b { color: var(--accent); }
+
+.back {
+  font-size: 14px; color: var(--muted); margin-bottom: 12px;
+  display: inline-flex; align-items: center; gap: 4px; font-weight: 600;
+}
+.back:hover { color: var(--accent); }
+
+.principle {
+  margin-top: 44px; padding: 16px 18px; border-radius: 14px;
+  background: var(--gray-soft); font-size: 12.5px; color: var(--muted);
+}
+.empty { color: var(--muted); font-size: 14px; padding: 16px 0; text-align: center; }
+
+@media (max-width: 420px) {
+  .stat { grid-template-columns: 1fr 1fr; }
+  .stat .box:first-child { grid-column: span 2; }
+  h1 { font-size: 23px; }
+}

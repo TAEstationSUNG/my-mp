@@ -1,0 +1,26 @@
+{
+  "name": "politics-transparency",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "정치 활동 투명화 앱 — 열린국회정보 데이터 수집/적재",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test:api": "node scripts/test-assembly-api.mjs",
+    "ingest": "node --env-file=.env scripts/ingest.mjs",
+    "ingest:members": "node --env-file=.env scripts/ingest.mjs members",
+    "ingest:bills": "node --env-file=.env scripts/ingest.mjs bills",
+    "ingest:votesummary": "node --env-file=.env scripts/ingest.mjs votesummary",
+    "ingest:votes": "node --env-file=.env scripts/ingest.mjs votes",
+    "ingest:tags": "node --env-file=.env scripts/ingest.mjs tags",
+    "ingest:all": "node --env-file=.env scripts/ingest.mjs all"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}
