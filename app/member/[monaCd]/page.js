@@ -8,6 +8,46 @@ export const dynamic = "force-dynamic";
 // 국회 의안정보시스템 원문(제안이유·주요내용·표결기록) 링크
 const billUrl = (id) => `https://likms.assembly.go.kr/bill/billDetail.do?billId=${id}`;
 
+// 지역구(orig_nm)에서 뉴스 검색어 추출: "서울 강북구갑" → "강북구", "경기 파주시을" → "파주시"
+function regionQuery(origNm) {
+  if (!origNm || origNm.includes("비례")) return null;
+  const tokens = origNm.trim().split(/\s+/);
+  const q = tokens[tokens.length - 1].replace(/[갑을병정]$/, "");
+  return q || null;
+}
+
+const stripTags = (s) =>
+  (s || "").replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").trim();
+
+// 우리 지역구 최근 뉴스 (Google 뉴스 RSS · 키 불필요 · 최신순). 지역 소식(≠의원 활동).
+async function getRegionNews(origNm) {
+  const q = regionQuery(origNm);
+  if (!q) return { query: null, items: [] };
+  try {
+    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=ko&gl=KR&ceid=KR:ko`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      next: { revalidate: 1800 }, // 30분 캐시(구별 동일 쿼리 재사용)
+    });
+    if (!res.ok) return { query: q, items: [] };
+    const xml = await res.text();
+    const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 6).map((m) => {
+      const block = m[1];
+      const rawTitle = stripTags((block.match(/<title>([\s\S]*?)<\/title>/) || [])[1]);
+      const source = stripTags((block.match(/<source[^>]*>([\s\S]*?)<\/source>/) || [])[1]);
+      const link = ((block.match(/<link>([\s\S]*?)<\/link>/) || [])[1] || "").trim();
+      const pub = (block.match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1] || "";
+      let title = rawTitle;
+      if (source && title.endsWith(` - ${source}`)) title = title.slice(0, -(source.length + 3));
+      const date = pub ? new Date(pub).toLocaleDateString("ko-KR") : "";
+      return { title, source, link, date };
+    });
+    return { query: q, items };
+  } catch {
+    return { query: q, items: [] };
+  }
+}
+
 async function getData(monaCd) {
   const { data: member } = await supabase
     .from("members")
@@ -62,6 +102,8 @@ async function getData(monaCd) {
   );
   const issueCounts = Object.fromEntries(issueCountEntries);
 
+  const news = await getRegionNews(member.orig_nm);
+
   return {
     member,
     bills,
@@ -70,6 +112,7 @@ async function getData(monaCd) {
     votes: votes ?? [],
     tagLabels,
     issueCounts,
+    news,
   };
 }
 
@@ -97,7 +140,7 @@ export default async function MemberPage({ params, searchParams }) {
   const { tag: activeTag = "" } = (await searchParams) ?? {};
   const data = await getData(monaCd);
   if (!data) notFound();
-  const { member: m, bills, billCount, part, votes, tagLabels, issueCounts } = data;
+  const { member: m, bills, billCount, part, votes, tagLabels, issueCounts, news } = data;
   const youthOrder = ["youth_housing", "employment", "pension"];
   const youthTotal = youthOrder.reduce((s, slug) => s + (issueCounts[slug] ?? 0), 0);
 
@@ -400,6 +443,37 @@ export default async function MemberPage({ params, searchParams }) {
           </a>
         ))}
       </div>
+
+      {/* 우리 지역구 최근 소식 — 지역 뉴스(≠ 의원 활동), 원문 연결 */}
+      {news?.query && (
+        <>
+          <h2>우리 지역구 최근 소식 · {news.query}</h2>
+          <p className="caption">
+            지역구 <b>{news.query}</b>의 최근 뉴스예요 (Google 뉴스 · 최신순).
+            <b> 의원 활동이 아니라 지역 소식</b>이고, 제목을 누르면 원문 기사로 이어져요.
+          </p>
+          <div className="card">
+            {news.items.length === 0 && (
+              <p className="empty">지금은 지역 뉴스를 불러오지 못했어요.</p>
+            )}
+            {news.items.map((n, i) => (
+              <a
+                key={i}
+                href={n.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bill-item link"
+              >
+                <div>{n.title}</div>
+                <div className="meta">
+                  {n.source}
+                  {n.date ? ` · ${n.date}` : ""}
+                </div>
+              </a>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* 준비중 항목 (PRD: 없는 건 억지로 채우지 않고 명시) */}
       <h2>재산등록 · 과거 공약</h2>
