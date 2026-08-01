@@ -48,6 +48,20 @@ async function getData(monaCd) {
     .order("vote_date", { ascending: false })
     .limit(8);
 
+  // 청년·민생 이슈별 발의 건수(이 의원, 전체 법안 기준 정확 카운트)
+  const issueOrder = ["youth_housing", "employment", "pension"];
+  const issueCountEntries = await Promise.all(
+    issueOrder.map(async (slug) => {
+      const { count } = await supabase
+        .from("bills")
+        .select("bill_id, bill_issue_tags!inner(tag_slug)", { count: "exact", head: true })
+        .eq("rst_mona_cd", monaCd)
+        .eq("bill_issue_tags.tag_slug", slug);
+      return [slug, count ?? 0];
+    })
+  );
+  const issueCounts = Object.fromEntries(issueCountEntries);
+
   return {
     member,
     bills,
@@ -55,6 +69,7 @@ async function getData(monaCd) {
     part,
     votes: votes ?? [],
     tagLabels,
+    issueCounts,
   };
 }
 
@@ -82,7 +97,9 @@ export default async function MemberPage({ params, searchParams }) {
   const { tag: activeTag = "" } = (await searchParams) ?? {};
   const data = await getData(monaCd);
   if (!data) notFound();
-  const { member: m, bills, billCount, part, votes, tagLabels } = data;
+  const { member: m, bills, billCount, part, votes, tagLabels, issueCounts } = data;
+  const youthOrder = ["youth_housing", "employment", "pension"];
+  const youthTotal = youthOrder.reduce((s, slug) => s + (issueCounts[slug] ?? 0), 0);
 
   // 이 의원 법안이 실제로 걸린 이슈 태그(칩으로 노출)
   const availableTags = [...new Set(bills.flatMap((b) => b.tags))].filter(
@@ -131,6 +148,28 @@ export default async function MemberPage({ params, searchParams }) {
             <span className="chip">{m.orig_nm ?? m.elect_gbn_nm}</span>
             {m.reele_gbn_nm && <span className="chip">{m.reele_gbn_nm}</span>}
           </div>
+        </div>
+      </div>
+
+      {/* 청년·민생 이슈 활동 — "나(청년)를 위해 뭘 했나" 요약 */}
+      <div className="youth-card">
+        <div className="youth-head">
+          <div>
+            <div className="youth-title">청년·민생 이슈 활동</div>
+            <div className="youth-sub">주거 · 일자리 · 연금에 발의한 법안</div>
+          </div>
+          <div className="youth-total">
+            {youthTotal}
+            <span>건</span>
+          </div>
+        </div>
+        <div className="youth-chips">
+          {youthOrder.map((slug) => (
+            <a key={slug} href={`/member/${monaCd}?tag=${slug}`} className="youth-chip">
+              <span className="youth-chip-label">{tagLabels[slug] ?? slug}</span>
+              <span className="youth-chip-num">{issueCounts[slug] ?? 0}</span>
+            </a>
+          ))}
         </div>
       </div>
 
