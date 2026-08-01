@@ -199,6 +199,25 @@ h2 { font-size: 15px; margin: 30px 4px 12px; font-weight: 700; color: var(--mute
 }
 .act-chip.soon { cursor: default; border: 1px dashed var(--line); }
 
+/* 계류 카운터 강조 줄 */
+.pending-line {
+  margin: 12px 0 0; font-size: 13.5px; color: var(--text);
+  background: var(--gray-soft); border-radius: 12px; padding: 10px 14px;
+}
+.pending-line b { color: var(--accent); }
+
+/* 세비·운영비 목록 */
+.allowance { margin: 0; }
+.allowance-row {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 14px;
+  padding: 12px 0; border-bottom: 1px solid var(--line);
+}
+.allowance-row:last-child { border-bottom: 0; }
+.allowance-row dt { font-size: 14px; font-weight: 700; flex: none; }
+.allowance-row dd { margin: 0; text-align: right; }
+.allowance-val { display: block; font-size: 15px; font-weight: 800; color: var(--accent); }
+.allowance-note { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
 /* 이슈 태그 필터 칩 */
 .tag-filter { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 2px 12px; }
 .tag-chip {

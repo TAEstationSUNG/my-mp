@@ -1,5 +1,6 @@
 import { supabase } from "../../../lib/supabase";
 import { partyColor, initial } from "../../../lib/ui";
+import { ALLOWANCE } from "../../../lib/allowance";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -94,6 +95,18 @@ export default async function MemberPage({ params, searchParams }) {
   const billUrlFor = (slug) =>
     slug ? `/member/${monaCd}?tag=${slug}` : `/member/${monaCd}`;
 
+  // 계류 카운터 — 처리결과가 빈 법안 = 아직 심사 중(계류). 대상은 '제도(심사 속도)', 판단 없이 날짜만.
+  const isPending = (b) => !b.proc_result || !String(b.proc_result).trim();
+  const pendingBills = bills.filter(isPending);
+  const processedCount = bills.length - pendingBills.length;
+  const oldestPending = pendingBills.reduce(
+    (min, b) => (!min || (b.propose_dt && b.propose_dt < min.propose_dt) ? b : min),
+    null
+  );
+  const daysPending = oldestPending?.propose_dt
+    ? Math.floor((Date.now() - new Date(oldestPending.propose_dt).getTime()) / 86400000)
+    : null;
+
   return (
     <main className="container">
       <a href="/" className="back">‹ 검색으로</a>
@@ -159,6 +172,60 @@ export default async function MemberPage({ params, searchParams }) {
         <p className="hint" style={{ marginTop: 12 }}>
           ※ ‘표결 참여율’은 본회의 표결에서 ‘불참’이 아닌 비율입니다(출석률 근사).
           위원회 출석률은 현재 공개 데이터가 없어 표시하지 않습니다.
+        </p>
+      </div>
+
+      {/* 법안 계류 카운터 — 대상은 사람이 아니라 '심사 속도(제도)' */}
+      <h2>법안 처리 현황</h2>
+      <div className="card">
+        <div className="stat">
+          <div className="box">
+            <div className="num">{processedCount}</div>
+            <div className="lbl">처리 완료</div>
+          </div>
+          <div className="box">
+            <div className="num">{pendingBills.length}</div>
+            <div className="lbl">심사 중(계류)</div>
+          </div>
+          <div className="box accent">
+            <div className="num small">
+              {daysPending != null ? `${daysPending}일째` : "—"}
+            </div>
+            <div className="lbl">최장 계류</div>
+          </div>
+        </div>
+        {oldestPending && (
+          <p className="pending-line">
+            ⏳ 가장 오래 계류 중: <b>{oldestPending.bill_name}</b> — 상정 {daysPending}일째
+          </p>
+        )}
+        <p className="hint" style={{ marginTop: 10 }}>
+          ※ 상정 후 처리까지 걸린 날짜만 계산한 값이에요(오늘 기준). 국회 <b>심사 속도</b>를
+          보여줄 뿐, 좋다/나쁘다 평가는 하지 않아요.
+          {bills.length < billCount && ` (최근 ${bills.length}건 기준)`}
+        </p>
+      </div>
+
+      {/* 세비·운영비 — 전원 동일 고정 지원 (PRD 10-1) */}
+      <h2>세비 · 운영비</h2>
+      <p className="caption">
+        모든 국회의원에게 <b>동일하게</b> 적용되는 고정 지원이에요. 위 활동(발의·표결·처리)과
+        나란히 놓고 ‘예산 대비 결과’를 스스로 판단해보세요.
+      </p>
+      <div className="card">
+        <dl className="allowance">
+          {ALLOWANCE.items.map((it) => (
+            <div key={it.label} className="allowance-row">
+              <dt>{it.label}</dt>
+              <dd>
+                <span className="allowance-val">{it.value}</span>
+                <span className="allowance-note">{it.note}</span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <p className="hint" style={{ marginTop: 10 }}>
+          출처: {ALLOWANCE.source} · {ALLOWANCE.baseYear} 기준(참고값, 검증 예정)
         </p>
       </div>
 
