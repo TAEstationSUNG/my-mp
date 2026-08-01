@@ -94,7 +94,7 @@ npm run ingest:tags          # 이슈 태그 규칙 적용
 - [x] 부조리 카운터 = "법안 처리 현황"(최장 계류 N일째, 대상은 심사속도·판단없음) — PRD 10-4
 - [x] 공유용 OG 이미지 자동생성 (`next/og` · 의원별 팩트카드 · Pretendard 한글폰트) — PRD 10-5
 - [x] 이슈 카드 갤러리 (홈, 이슈별 최근 법안 자동 큐레이션) — PRD 10-5
-- [ ] GitHub Actions 자동 수집 스케줄링 — PRD 7
+- [x] GitHub Actions 자동 수집 (`.github/workflows/ingest.yml` · 매일 갱신 + 주1회 표결) — PRD 7 · ⚠️GitHub Secrets 3개 등록 필요
 - [ ] (개선) 이슈 태그 키워드 정교화 — 예: '노후' 가 '노후계획도시'까지 매칭됨(연금 오탐)
 
 > ⚠️ **AI 요약 블로커(다음에 여기서 이어서):** 요약 재료인 '제안이유·주요내용'이 국회
