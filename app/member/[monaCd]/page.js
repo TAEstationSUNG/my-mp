@@ -19,17 +19,29 @@ function regionQuery(origNm) {
 const stripTags = (s) =>
   (s || "").replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").trim();
 
+// 지역 뉴스 이슈 필터 (지역명 + 키워드로 검색)
+const NEWS_TOPICS = [
+  { q: "", label: "전체" },
+  { q: "교통", label: "교통" },
+  { q: "개발", label: "개발" },
+  { q: "문화", label: "문화" },
+  { q: "복지", label: "복지" },
+  { q: "환경", label: "환경" },
+  { q: "안전", label: "안전" },
+];
+
 // 우리 지역구 최근 뉴스 (Google 뉴스 RSS · 키 불필요 · 최신순). 지역 소식(≠의원 활동).
-async function getRegionNews(origNm) {
-  const q = regionQuery(origNm);
-  if (!q) return { query: null, items: [] };
+async function getRegionNews(origNm, topic = "") {
+  const region = regionQuery(origNm);
+  if (!region) return { region: null, topic, items: [] };
+  const q = topic ? `${region} ${topic}` : region;
   try {
     const url = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=ko&gl=KR&ceid=KR:ko`;
     const res = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0" },
       next: { revalidate: 1800 }, // 30분 캐시(구별 동일 쿼리 재사용)
     });
-    if (!res.ok) return { query: q, items: [] };
+    if (!res.ok) return { region, topic, items: [] };
     const xml = await res.text();
     const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 6).map((m) => {
       const block = m[1];
@@ -42,13 +54,13 @@ async function getRegionNews(origNm) {
       const date = pub ? new Date(pub).toLocaleDateString("ko-KR") : "";
       return { title, source, link, date };
     });
-    return { query: q, items };
+    return { region, topic, items };
   } catch {
-    return { query: q, items: [] };
+    return { region, topic, items: [] };
   }
 }
 
-async function getData(monaCd) {
+async function getData(monaCd, newsTopic = "") {
   const { data: member } = await supabase
     .from("members")
     .select("*")
@@ -102,7 +114,7 @@ async function getData(monaCd) {
   );
   const issueCounts = Object.fromEntries(issueCountEntries);
 
-  const news = await getRegionNews(member.orig_nm);
+  const news = await getRegionNews(member.orig_nm, newsTopic);
 
   return {
     member,
@@ -137,8 +149,8 @@ function voteClass(v) {
 
 export default async function MemberPage({ params, searchParams }) {
   const { monaCd } = await params;
-  const { tag: activeTag = "" } = (await searchParams) ?? {};
-  const data = await getData(monaCd);
+  const { tag: activeTag = "", news: newsTopic = "" } = (await searchParams) ?? {};
+  const data = await getData(monaCd, newsTopic);
   if (!data) notFound();
   const { member: m, bills, billCount, part, votes, tagLabels, issueCounts, news } = data;
   const youthOrder = ["youth_housing", "employment", "pension"];
@@ -154,6 +166,14 @@ export default async function MemberPage({ params, searchParams }) {
     : bills.slice(0, 10);
   const billUrlFor = (slug) =>
     slug ? `/member/${monaCd}?tag=${slug}` : `/member/${monaCd}`;
+  // 지역 뉴스 이슈 필터 링크 (기존 tag 필터는 유지)
+  const newsHref = (q) => {
+    const p = new URLSearchParams();
+    if (activeTag) p.set("tag", activeTag);
+    if (q) p.set("news", q);
+    const s = p.toString();
+    return `/member/${monaCd}${s ? `?${s}` : ""}`;
+  };
 
   // 계류 카운터 — 처리결과가 빈 법안 = 아직 심사 중(계류). 대상은 '제도(심사 속도)', 판단 없이 날짜만.
   const isPending = (b) => !b.proc_result || !String(b.proc_result).trim();
@@ -445,16 +465,29 @@ export default async function MemberPage({ params, searchParams }) {
       </div>
 
       {/* 우리 지역구 최근 소식 — 지역 뉴스(≠ 의원 활동), 원문 연결 */}
-      {news?.query && (
+      {news?.region && (
         <>
-          <h2>우리 지역구 최근 소식 · {news.query}</h2>
+          <h2>우리 지역구 최근 소식 · {news.region}</h2>
           <p className="caption">
-            지역구 <b>{news.query}</b>의 최근 뉴스예요 (Google 뉴스 · 최신순).
+            지역구 <b>{news.region}</b>의 최근 뉴스예요 (Google 뉴스 · 최신순).
             <b> 의원 활동이 아니라 지역 소식</b>이고, 제목을 누르면 원문 기사로 이어져요.
           </p>
+          <div className="tag-filter">
+            {NEWS_TOPICS.map((t) => (
+              <a
+                key={t.q || "all"}
+                href={newsHref(t.q)}
+                className={`tag-chip ${newsTopic === t.q ? "on" : ""}`}
+              >
+                {t.label}
+              </a>
+            ))}
+          </div>
           <div className="card">
             {news.items.length === 0 && (
-              <p className="empty">지금은 지역 뉴스를 불러오지 못했어요.</p>
+              <p className="empty">
+                {news.topic ? `‘${news.region} ${news.topic}’ 뉴스가 없어요.` : "지금은 지역 뉴스를 불러오지 못했어요."}
+              </p>
             )}
             {news.items.map((n, i) => (
               <a
