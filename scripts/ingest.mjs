@@ -239,16 +239,51 @@ async function syncVotes(limit = Infinity) {
 }
 
 // ── 5. 이슈 태그 규칙 적용 ─────────────────────────────────
-async function applyTags() {
-  console.log("▶ 이슈 태그(bill_issue_tags) 규칙 적용…");
-  const { data: tags, error: te } = await supabase.from("issue_tags").select("slug,keywords");
-  if (te) throw new Error(`issue_tags 조회 실패: ${te.message}`);
-  if (!tags?.length) {
-    console.log("⚠️ issue_tags 가 비어있음 (schema.sql 적용 확인).");
-    return;
-  }
+// 키워드 정의(이곳이 원천). 규칙 기반이라 오탐 최소화하려면 '구체 키워드' 위주로.
+const ISSUE_TAGS = [
+  {
+    slug: "youth_housing",
+    label: "청년 주거",
+    keywords: ["전세", "월세", "주거", "임대주택", "청년주택", "행복주택", "보증금", "주택청약", "주거급여"],
+    description: "주거 관련 키워드 매칭",
+  },
+  {
+    slug: "employment",
+    label: "일자리·고용",
+    keywords: ["고용", "일자리", "노동", "근로", "채용", "최저임금", "실업", "비정규직", "청년고용", "취업"],
+    description: "일자리·고용·노동 관련 키워드 매칭",
+  },
+  {
+    slug: "pension",
+    label: "연금",
+    // '노후'는 '노후계획도시'(도시재생) 오탐이라 제외 → 연금 전용어만
+    keywords: ["연금", "국민연금", "퇴직연금", "기초연금", "노령연금"],
+    description: "연금 관련 키워드 매칭",
+  },
+];
 
-  // 법안을 페이지로 나눠 읽으며 키워드 매칭
+async function applyTags() {
+  console.log("▶ 이슈 태그(bill_issue_tags) 재빌드…");
+
+  // 1) 키워드 정의를 DB(issue_tags)에 동기화 (코드가 원천)
+  await supabase.from("issue_tags").upsert(
+    ISSUE_TAGS.map((t) => ({
+      slug: t.slug,
+      label: t.label,
+      keywords: t.keywords,
+      description: t.description,
+    })),
+    { onConflict: "slug" }
+  );
+
+  // 2) 기존 태그 전부 삭제(깨끗이 재빌드 — 키워드 바꿔도 stale 안 남게)
+  const { error: delErr } = await supabase
+    .from("bill_issue_tags")
+    .delete()
+    .neq("tag_slug", "___none___"); // 모든 행 매칭
+  if (delErr) throw new Error(`bill_issue_tags 삭제 실패: ${delErr.message}`);
+
+  // 3) 법안을 페이지로 읽으며 키워드 매칭 → 재삽입
   const pageSize = 1000;
   let from = 0;
   const tagRows = [];
@@ -261,7 +296,7 @@ async function applyTags() {
     if (!bills.length) break;
     for (const b of bills) {
       const name = b.bill_name ?? "";
-      for (const t of tags) {
+      for (const t of ISSUE_TAGS) {
         if (t.keywords.some((kw) => name.includes(kw))) {
           tagRows.push({ bill_id: b.bill_id, tag_slug: t.slug });
         }
