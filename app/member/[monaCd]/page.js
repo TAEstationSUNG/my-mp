@@ -209,10 +209,18 @@ export default async function MemberPage({ params, searchParams }) {
       {/* 세비·운영비 — 전원 동일 고정 지원 (PRD 10-1) */}
       <h2>세비 · 운영비</h2>
       <p className="caption">
-        모든 국회의원에게 <b>동일하게</b> 적용되는 고정 지원이에요. 위 활동(발의·표결·처리)과
-        나란히 놓고 ‘예산 대비 결과’를 스스로 판단해보세요.
+        모든 국회의원에게 <b>동일하게</b> 적용되는 고정 지원이에요(개인별 차이 아님).
+        위 활동(발의·표결·처리)과 나란히 놓고 ‘예산 대비 결과’를 스스로 판단해보세요.
       </p>
       <div className="card">
+        {/* 월급 크게 + 연간세비 아래 */}
+        <div className="salary-head">
+          <div className="salary-label">월급 (세비)</div>
+          <div className="salary-monthly">{ALLOWANCE.salaryMonthly}</div>
+          <div className="salary-annual">연간 세비 {ALLOWANCE.salaryAnnual}</div>
+          <div className="salary-note">{ALLOWANCE.salaryNote}</div>
+        </div>
+
         <dl className="allowance">
           {ALLOWANCE.items.map((it) => (
             <div key={it.label} className="allowance-row">
@@ -225,7 +233,8 @@ export default async function MemberPage({ params, searchParams }) {
           ))}
         </dl>
         <p className="hint" style={{ marginTop: 10 }}>
-          출처: {ALLOWANCE.source} · {ALLOWANCE.baseYear} 기준(참고값, 검증 예정)
+          출처: {ALLOWANCE.source} · {ALLOWANCE.baseYear} 기준. 개인별 실제 집행액은 국회가
+          공개하지 않아 <b>기준(참고) 액수</b>만 표시해요.
         </p>
       </div>
 

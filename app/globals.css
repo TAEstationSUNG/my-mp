@@ -206,6 +206,22 @@ h2 { font-size: 15px; margin: 30px 4px 12px; font-weight: 700; color: var(--mute
 }
 .pending-line b { color: var(--accent); }
 
+/* 세비 — 월급 헤드라인 */
+.salary-head {
+  text-align: center; padding: 6px 0 16px; margin-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.salary-label { font-size: 13px; font-weight: 700; color: var(--muted); }
+.salary-monthly {
+  font-size: 34px; font-weight: 800; letter-spacing: -0.03em; color: var(--accent);
+  margin: 2px 0 4px; line-height: 1.1;
+}
+.salary-annual {
+  display: inline-block; font-size: 13px; font-weight: 700; color: var(--text);
+  background: var(--accent-soft); padding: 4px 12px; border-radius: 999px;
+}
+.salary-note { font-size: 11.5px; color: var(--muted); margin-top: 8px; }
+
 /* 세비·운영비 목록 */
 .allowance { margin: 0; }
 .allowance-row {
