@@ -15,12 +15,24 @@ async function getData(monaCd) {
     .maybeSingle();
   if (!member) return null;
 
-  const { data: bills, count: billCount } = await supabase
+  // 이슈 태그 라벨(slug → 라벨)
+  const { data: tagRows } = await supabase.from("issue_tags").select("slug, label");
+  const tagLabels = Object.fromEntries((tagRows ?? []).map((t) => [t.slug, t.label]));
+
+  // 대표발의 법안 + 각 법안의 이슈 태그(중첩 조회)
+  const { data: rawBills, count: billCount } = await supabase
     .from("bills")
-    .select("bill_id, bill_name, propose_dt, proc_result", { count: "exact" })
+    .select("bill_id, bill_name, propose_dt, proc_result, bill_issue_tags(tag_slug)", {
+      count: "exact",
+    })
     .eq("rst_mona_cd", monaCd)
     .order("propose_dt", { ascending: false })
-    .limit(10);
+    .limit(100);
+
+  const bills = (rawBills ?? []).map((b) => ({
+    ...b,
+    tags: (b.bill_issue_tags ?? []).map((t) => t.tag_slug),
+  }));
 
   const { data: part } = await supabase
     .from("member_vote_participation")
@@ -35,7 +47,14 @@ async function getData(monaCd) {
     .order("vote_date", { ascending: false })
     .limit(8);
 
-  return { member, bills: bills ?? [], billCount: billCount ?? 0, part, votes: votes ?? [] };
+  return {
+    member,
+    bills,
+    billCount: billCount ?? 0,
+    part,
+    votes: votes ?? [],
+    tagLabels,
+  };
 }
 
 // API 원문에 섞인 HTML 엔티티(&middot; 등)를 보이는 문자로 복원 (내용 변경 아님)
@@ -57,11 +76,23 @@ function voteClass(v) {
   return "vote-etc";
 }
 
-export default async function MemberPage({ params }) {
+export default async function MemberPage({ params, searchParams }) {
   const { monaCd } = await params;
+  const { tag: activeTag = "" } = (await searchParams) ?? {};
   const data = await getData(monaCd);
   if (!data) notFound();
-  const { member: m, bills, billCount, part, votes } = data;
+  const { member: m, bills, billCount, part, votes, tagLabels } = data;
+
+  // 이 의원 법안이 실제로 걸린 이슈 태그(칩으로 노출)
+  const availableTags = [...new Set(bills.flatMap((b) => b.tags))].filter(
+    (slug) => tagLabels[slug]
+  );
+  const isFiltering = activeTag && availableTags.includes(activeTag);
+  const shownBills = isFiltering
+    ? bills.filter((b) => b.tags.includes(activeTag))
+    : bills.slice(0, 10);
+  const billUrlFor = (slug) =>
+    slug ? `/member/${monaCd}?tag=${slug}` : `/member/${monaCd}`;
 
   return (
     <main className="container">
@@ -132,20 +163,61 @@ export default async function MemberPage({ params }) {
       </div>
 
       {/* 대표발의 법안 */}
-      <h2>대표발의 법안 {billCount > 10 ? `(최근 10건 / 총 ${billCount}건)` : ""}</h2>
+      <h2>
+        대표발의 법안{" "}
+        {isFiltering
+          ? `(‘${tagLabels[activeTag]}’ ${shownBills.length}건)`
+          : billCount > 10
+          ? `(최근 10건 / 총 ${billCount}건)`
+          : ""}
+      </h2>
       <p className="caption">
         (*<b>대표발의</b>란, 그 법안을 대표로 제안한 의원이에요.)
         ‘원문 보기’를 누르면 국회 원문에서 제안 이유·주요 내용을 볼 수 있어요.
         쉬운 말 요약(AI)은 곧 추가될 예정이에요.
       </p>
+
+      {/* 이슈 태그 필터 (청년주거/고용/연금) */}
+      {availableTags.length > 0 && (
+        <div className="tag-filter">
+          <a href={billUrlFor("")} className={`tag-chip ${!isFiltering ? "on" : ""}`}>
+            전체
+          </a>
+          {availableTags.map((slug) => (
+            <a
+              key={slug}
+              href={billUrlFor(slug)}
+              className={`tag-chip ${activeTag === slug ? "on" : ""}`}
+            >
+              {tagLabels[slug]}
+            </a>
+          ))}
+        </div>
+      )}
+
       <div className="card">
-        {bills.length === 0 && <p className="empty">대표발의한 법안이 없습니다.</p>}
-        {bills.map((b) => (
+        {shownBills.length === 0 && (
+          <p className="empty">
+            {isFiltering ? "해당 이슈의 대표발의 법안이 없습니다." : "대표발의한 법안이 없습니다."}
+          </p>
+        )}
+        {shownBills.map((b) => (
           <div key={b.bill_id} className="bill-item">
             <div>{b.bill_name}</div>
             <div className="meta">
               {b.propose_dt} {b.proc_result ? `· ${b.proc_result}` : "· 처리 진행중"}
             </div>
+            {b.tags.length > 0 && (
+              <div className="bill-tags">
+                {b.tags
+                  .filter((slug) => tagLabels[slug])
+                  .map((slug) => (
+                    <span key={slug} className="issue-badge">
+                      #{tagLabels[slug]}
+                    </span>
+                  ))}
+              </div>
+            )}
             <div className="bill-actions">
               <a
                 href={billUrl(b.bill_id)}
