@@ -220,6 +220,25 @@ h2 { font-size: 15px; margin: 30px 4px 12px; font-weight: 700; color: var(--mute
 .youth-chip-label { font-size: 13px; font-weight: 700; }
 .youth-chip-num { font-size: 18px; font-weight: 800; }
 
+/* 홈 두 입구 카드 */
+.entry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0 10px; }
+.entry-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+  padding: 18px; box-shadow: var(--shadow);
+}
+.entry-card.alt { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 25%, var(--line)); }
+.entry-emoji { font-size: 26px; }
+.entry-title { font-size: 17px; font-weight: 800; margin-top: 6px; }
+.entry-desc { font-size: 12.5px; color: var(--muted); margin: 2px 0 12px; line-height: 1.4; min-height: 34px; }
+.entry-card .search { margin: 0; flex-direction: column; gap: 8px; }
+.entry-card .search input { width: 100%; }
+.entry-card .search button { width: 100%; padding: 12px; }
+
+@media (max-width: 560px) {
+  .entry-grid { grid-template-columns: 1fr; }
+  .entry-desc { min-height: 0; }
+}
+
 /* 이슈 카드 갤러리 (홈) */
 .gallery-h2 { margin-top: 40px; }
 .issue-cards {

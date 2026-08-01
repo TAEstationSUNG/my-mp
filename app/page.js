@@ -68,22 +68,27 @@ export default async function Home({ searchParams }) {
         판단·점수 없이 사실만 보여드려요.
       </p>
 
-      <form className="search" action="/" method="get">
-        <input
-          type="text"
-          name="q"
-          defaultValue={query}
-          placeholder="우리 동네 입력 (예: 파주, 종로, 강남)"
-          autoFocus
-        />
-        <button type="submit">보기</button>
-      </form>
-
-      {query === "" && (
-        <p className="hint">
-          시/구 이름을 넣으면 그 지역 의원이 요즘 뭘 하는지 바로 보여드려요. (비례대표는 “비례”)
-        </p>
-      )}
+      {/* 두 입구: 의원 찾기 / 우리 동네 소식 */}
+      <div className="entry-grid">
+        <div className="entry-card">
+          <div className="entry-emoji">🔍</div>
+          <div className="entry-title">내 의원 찾기</div>
+          <div className="entry-desc">지역구 국회의원의 활동·발의·표결을 봐요</div>
+          <form className="search" action="/" method="get">
+            <input type="text" name="q" defaultValue={query} placeholder="지역 입력 (예: 파주)" />
+            <button type="submit">의원 보기</button>
+          </form>
+        </div>
+        <div className="entry-card alt">
+          <div className="entry-emoji">📰</div>
+          <div className="entry-title">우리 동네 소식</div>
+          <div className="entry-desc">동네 현안·뉴스 + 우리 지역 의원 알아보기</div>
+          <form className="search" action="/town" method="get">
+            <input type="text" name="q" placeholder="동네 입력 (예: 강북구)" />
+            <button type="submit">소식 보기</button>
+          </form>
+        </div>
+      </div>
 
       {query !== "" && members.length === 0 && (
         <p className="empty">‘{query}’ 로 찾은 의원이 없어요. 다른 지역명으로 해보세요.</p>
