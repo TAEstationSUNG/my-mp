@@ -71,7 +71,7 @@ export default async function Town({ searchParams }) {
                   {m.poly_nm ?? "무소속"} · {m.orig_nm ?? m.elect_gbn_nm}
                 </div>
               </div>
-              <span className="chevron">알아보기 ›</span>
+              <span className="town-cta">알아보기 →</span>
             </a>
           ))}
 

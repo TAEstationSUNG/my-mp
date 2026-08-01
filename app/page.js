@@ -71,7 +71,7 @@ export default async function Home({ searchParams }) {
       {/* 두 입구: 의원 찾기 / 우리 동네 소식 */}
       <div className="entry-grid">
         <div className="entry-card">
-          <div className="entry-emoji">🔍</div>
+          <div className="entry-icon">🔍</div>
           <div className="entry-title">내 의원 찾기</div>
           <div className="entry-desc">지역구 국회의원의 활동·발의·표결을 봐요</div>
           <form className="search" action="/" method="get">
@@ -79,8 +79,8 @@ export default async function Home({ searchParams }) {
             <button type="submit">의원 보기</button>
           </form>
         </div>
-        <div className="entry-card alt">
-          <div className="entry-emoji">📰</div>
+        <div className="entry-card town">
+          <div className="entry-icon">📰</div>
           <div className="entry-title">우리 동네 소식</div>
           <div className="entry-desc">동네 현안·뉴스 + 우리 지역 의원 알아보기</div>
           <form className="search" action="/town" method="get">

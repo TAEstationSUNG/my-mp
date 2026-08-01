@@ -9,6 +9,8 @@
   --line: #ececf3;
   --accent: #6d5ae6;
   --accent-soft: #efeaff;
+  --accent2: #0d9488;
+  --accent2-soft: #dcf5f1;
   --green: #12a150;
   --green-soft: #e5f6ec;
   --red: #e5484d;
@@ -29,6 +31,8 @@
     --line: #2a2c38;
     --accent: #8f7dff;
     --accent-soft: #262247;
+    --accent2: #2dd4bf;
+    --accent2-soft: #133330;
     --green: #3ecf7a;
     --green-soft: #17321f;
     --red: #ff6b6f;
@@ -126,6 +130,10 @@ h2 { font-size: 15px; margin: 30px 4px 12px; font-weight: 700; color: var(--mute
 .member-row .name { font-weight: 700; font-size: 17px; letter-spacing: -0.02em; }
 .member-row .sub { font-size: 13px; color: var(--muted); }
 .chevron { color: var(--muted); font-size: 22px; align-self: center; }
+.town-cta {
+  flex: none; align-self: center; font-size: 13px; font-weight: 700; color: #fff;
+  background: var(--accent2); padding: 8px 14px; border-radius: 999px; white-space: nowrap;
+}
 
 /* 최근 활동 미리보기 (홈 목록의 훅) */
 .recent {
@@ -221,18 +229,30 @@ h2 { font-size: 15px; margin: 30px 4px 12px; font-weight: 700; color: var(--mute
 .youth-chip-num { font-size: 18px; font-weight: 800; }
 
 /* 홈 두 입구 카드 */
-.entry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0 10px; }
+.entry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0 10px; }
 .entry-card {
-  background: var(--card); border: 1px solid var(--line); border-radius: 18px;
-  padding: 18px; box-shadow: var(--shadow);
+  position: relative; overflow: hidden;
+  background: var(--card); border: 1px solid var(--line); border-radius: 20px;
+  padding: 20px; box-shadow: var(--shadow); transition: transform .14s, box-shadow .16s;
 }
-.entry-card.alt { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 25%, var(--line)); }
-.entry-emoji { font-size: 26px; }
-.entry-title { font-size: 17px; font-weight: 800; margin-top: 6px; }
-.entry-desc { font-size: 12.5px; color: var(--muted); margin: 2px 0 12px; line-height: 1.4; min-height: 34px; }
+.entry-card::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent);
+}
+.entry-card.town::before { background: var(--accent2); }
+.entry-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+.entry-icon {
+  width: 50px; height: 50px; border-radius: 15px; display: grid; place-items: center;
+  font-size: 24px; background: var(--accent-soft);
+}
+.entry-card.town .entry-icon { background: var(--accent2-soft); }
+.entry-title { font-size: 18px; font-weight: 800; margin-top: 12px; letter-spacing: -0.02em; }
+.entry-desc { font-size: 12.5px; color: var(--muted); margin: 3px 0 14px; line-height: 1.45; min-height: 34px; }
 .entry-card .search { margin: 0; flex-direction: column; gap: 8px; }
 .entry-card .search input { width: 100%; }
-.entry-card .search button { width: 100%; padding: 12px; }
+.entry-card .search input:focus { border-color: var(--accent); }
+.entry-card.town .search input:focus { border-color: var(--accent2); }
+.entry-card .search button { width: 100%; padding: 13px; }
+.entry-card.town .search button { background: var(--accent2); }
 
 @media (max-width: 560px) {
   .entry-grid { grid-template-columns: 1fr; }
