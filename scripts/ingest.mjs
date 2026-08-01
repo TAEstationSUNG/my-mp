@@ -65,12 +65,23 @@ function parse(json) {
 }
 
 // 한 서비스ID 전체 페이지를 순회하며 row 를 모아준다
+// (요청마다 15초 시간제한 + 실패 시 1회 재시도 → 응답 없는 hang 방지)
 async function fetchAll(code, extra = {}, { pSize = 1000, maxPages = Infinity } = {}) {
   const out = [];
   for (let page = 1; page <= maxPages; page++) {
     const qs = new URLSearchParams({ KEY, Type: "json", pIndex: String(page), pSize: String(pSize), ...extra });
-    const res = await fetch(`${BASE}/${code}?${qs}`);
-    const json = await res.json();
+    const url = `${BASE}/${code}?${qs}`;
+    let json;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+        json = await res.json();
+        break;
+      } catch (e) {
+        if (attempt === 2) throw new Error(`fetch 실패(${code}): ${e.message}`);
+        await sleep(500);
+      }
+    }
     const { rows } = parse(json);
     if (rows.length === 0) break;
     out.push(...rows);
@@ -213,25 +224,30 @@ async function syncVotes(limit = Infinity) {
   console.log(`  대상 법안 ${billIds.length}개 (법안당 API 1회)`);
 
   let total = 0;
+  let skipped = 0;
   for (let i = 0; i < billIds.length; i++) {
     const billId = billIds[i];
-    const raw = await fetchAll("nojepdqqaweusdfbi", { AGE, BILL_ID: billId }, { pSize: 1000, maxPages: 1 });
-    const rows = raw.map((r) => ({
-      bill_id: r.BILL_ID,
-      mona_cd: r.MONA_CD,
-      result_vote_mod: r.RESULT_VOTE_MOD,
-      vote_date: toTimestamp(r.VOTE_DATE),
-      bill_name: emptyToNull(r.BILL_NAME),
-      law_title: emptyToNull(r.LAW_TITLE),
-      session_cd: emptyToNull(r.SESSION_CD),
-      age: toInt(r.AGE) ?? 22,
-    })).filter((r) => r.bill_id && r.mona_cd && r.result_vote_mod);
-    if (rows.length) {
-      const { error: e } = await supabase.from("votes").upsert(rows, { onConflict: "bill_id,mona_cd" });
-      if (e) throw new Error(`[votes] upsert 실패 (${billId}): ${e.message}`);
-      total += rows.length;
+    try {
+      const raw = await fetchAll("nojepdqqaweusdfbi", { AGE, BILL_ID: billId }, { pSize: 1000, maxPages: 1 });
+      const rows = raw.map((r) => ({
+        bill_id: r.BILL_ID,
+        mona_cd: r.MONA_CD,
+        result_vote_mod: r.RESULT_VOTE_MOD,
+        vote_date: toTimestamp(r.VOTE_DATE),
+        bill_name: emptyToNull(r.BILL_NAME),
+        law_title: emptyToNull(r.LAW_TITLE),
+        session_cd: emptyToNull(r.SESSION_CD),
+        age: toInt(r.AGE) ?? 22,
+      })).filter((r) => r.bill_id && r.mona_cd && r.result_vote_mod);
+      if (rows.length) {
+        const { error: e } = await supabase.from("votes").upsert(rows, { onConflict: "bill_id,mona_cd" });
+        if (e) throw new Error(e.message);
+        total += rows.length;
+      }
+    } catch (e) {
+      skipped++; // 한 법안이 느리거나 실패해도 전체는 계속
     }
-    process.stdout.write(`\r  진행 ${i + 1}/${billIds.length}  누적 표결 ${total}건`);
+    process.stdout.write(`\r  진행 ${i + 1}/${billIds.length}  누적 ${total}건  건너뜀 ${skipped}`);
     await sleep(120);
   }
   process.stdout.write("\n");
