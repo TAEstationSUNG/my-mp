@@ -107,6 +107,13 @@ export default async function MemberPage({ params, searchParams }) {
     ? Math.floor((Date.now() - new Date(oldestPending.propose_dt).getTime()) / 86400000)
     : null;
 
+  // 실제 보좌진 인원(이름 콤마 구분 → 개수만). 데이터 없으면 null → 정원 표기로 폴백.
+  const countNames = (s) => (s ? String(s).split(",").filter((x) => x.trim()).length : 0);
+  const hasAideData = m.staff != null || m.secretary != null || m.secretary2 != null;
+  const aideCount = hasAideData
+    ? countNames(m.staff) + countNames(m.secretary) + countNames(m.secretary2)
+    : null;
+
   return (
     <main className="container">
       <a href="/" className="back">‹ 검색으로</a>
@@ -222,6 +229,18 @@ export default async function MemberPage({ params, searchParams }) {
         </div>
 
         <dl className="allowance">
+          {/* 보좌 인력 — 실제 인원(의원별) + 1인당 세금 비용 */}
+          <div className="allowance-row">
+            <dt>보좌 인력</dt>
+            <dd>
+              <span className="allowance-val">
+                {aideCount != null ? `실제 ${aideCount}명` : "최대 9명"}
+              </span>
+              <span className="allowance-note">
+                {ALLOWANCE.aidePerPerson} · {ALLOWANCE.aideNote}
+              </span>
+            </dd>
+          </div>
           {ALLOWANCE.items.map((it) => (
             <div key={it.label} className="allowance-row">
               <dt>{it.label}</dt>

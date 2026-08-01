@@ -115,6 +115,9 @@ async function syncMembers() {
     homepage: emptyToNull(r.HOMEPAGE),
     assem_addr: emptyToNull(r.ASSEM_ADDR),
     mem_title: emptyToNull(r.MEM_TITLE),
+    staff: emptyToNull(r.STAFF),          // 보좌관 (콤마 구분 이름)
+    secretary: emptyToNull(r.SECRETARY),  // 선임비서관
+    secretary2: emptyToNull(r.SECRETARY2),// 비서 등
     age: toInt(r.AGE) ?? 22,
   })).filter((r) => r.mona_cd);
   await upsertChunked("members", rows, "mona_cd");

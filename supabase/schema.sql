@@ -30,9 +30,17 @@ create table if not exists members (
   homepage       text,
   assem_addr     text,                      -- 의원회관 호실
   mem_title      text,                      -- 약력 원문
+  staff          text,                      -- 보좌관 이름(콤마 구분)
+  secretary      text,                      -- 선임비서관
+  secretary2     text,                      -- 비서 등
   age            int  default 22,
   synced_at      timestamptz default now()
 );
+
+-- 기존 members 테이블에 보좌진 컬럼 추가(이미 만든 DB용 · 재실행 안전)
+alter table members add column if not exists staff text;
+alter table members add column if not exists secretary text;
+alter table members add column if not exists secretary2 text;
 
 create index if not exists idx_members_orig on members (orig_nm);
 create index if not exists idx_members_poly on members (poly_nm);
