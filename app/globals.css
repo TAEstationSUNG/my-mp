@@ -199,6 +199,35 @@ h2 { font-size: 15px; margin: 30px 4px 12px; font-weight: 700; color: var(--mute
 }
 .act-chip.soon { cursor: default; border: 1px dashed var(--line); }
 
+/* 이슈 카드 갤러리 (홈) */
+.gallery-h2 { margin-top: 40px; }
+.issue-cards {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 8px;
+}
+.issue-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 14px; box-shadow: var(--shadow); display: flex; flex-direction: column;
+}
+.issue-card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 4px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+}
+.issue-card-title { font-weight: 800; font-size: 15px; color: var(--accent); }
+.issue-card-count { font-size: 12px; color: var(--muted); font-weight: 600; }
+.issue-bill { display: block; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.issue-bill:last-child { border-bottom: 0; }
+.issue-bill:hover .issue-bill-name { color: var(--accent); }
+.issue-bill-name {
+  font-size: 13.5px; line-height: 1.4; color: var(--text);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.issue-bill-meta { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+.issue-empty { font-size: 13px; color: var(--muted); padding: 12px 0; }
+
+@media (max-width: 600px) {
+  .issue-cards { grid-template-columns: 1fr; }
+}
+
 /* 계류 카운터 강조 줄 */
 .pending-line {
   margin: 12px 0 0; font-size: 13.5px; color: var(--text);
